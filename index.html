@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Beauty of unity</title>
+	<meta name="description" content="Some decorative background scroll effects for websites using WebGL and regl" />
+	<meta name="keywords" content="map" />
+	<meta name="author" content="Codrops" />
+	<link rel="shortcut icon" href="favicon.ico">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+	<link rel="stylesheet" type="text/css" href="css/demo.css" />
+	<script>document.documentElement.className = 'js';</script>
+</head>
+<body class="demo-4 loading">
+	<canvas id="webgl"></canvas>
+	
+	<main>
+		<section class="content content--main"></section>
+	</main>
+	<script src="js/regl.min.js"></script>
+	<script type="x-shader/x-fragment" id="fragmentShader">
+	#define TWO_PI 6.2831853072
+	#define PI 3.14159265359
+
+	precision highp float;
+
+	uniform float globaltime;
+	uniform vec2 resolution;
+	uniform float aspect;
+	uniform float scroll;
+	uniform float velocity;
+	uniform sampler2D texture;
+
+	const float timescale = 0.5;
+	const float twist = 1.1;
+
+	vec2 rotate(vec2 v, float angle) {
+		float c = cos(angle);
+		float s = sin(angle);
+		return v * mat2(c, -s, s, c);
+	}
+
+	float nsin(float value) {
+		return sin(value * PI) * 0.5 + 0.5;
+	}
+
+	void main(void) {
+		float time = (globaltime * timescale)*0.2;
+		vec2 center = vec2(sin(TWO_PI * time * 0.2), cos(TWO_PI * time * 0.2)) * nsin(time * 0.3) * 0.5;
+		vec2 tx = (gl_FragCoord.xy / resolution.xy - 0.5 - center) * vec2(aspect, 1.0);
+		float len = 1.0 - length(tx);
+		float zoom = 1.01 + time - len * 3.0 * (1.0 - time) + len * velocity * 10.0 + scroll;
+
+
+		vec4 imgColor = texture2D(
+			texture,
+			rotate(
+				(tx + center) * vec2(1.0, -1.0) * time,
+				twist * PI * nsin(len + scroll) * time
+			) + 0.5
+		);
+
+
+		gl_FragColor = imgColor;
+	}
+	</script>
+	<script src="js/demo4.js"></script>
+</body>
+</html>
